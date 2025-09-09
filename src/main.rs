@@ -182,7 +182,7 @@ fn main() {
                     std::char::from_digit(i % 10, 10).unwrap() as chtype,
                 );
             } else if show_numbers == 1 {
-                draw_line(dx, dy, dx, dy, '.' as chtype);
+                draw_line(dx, dy, dx, dy, '*' as chtype);
             }
         }
 
