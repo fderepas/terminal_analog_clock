@@ -99,7 +99,7 @@ fn polar_to_cartesian_ellipse(cx: i32, cy: i32, angle: f64, a: f64, b: f64) -> (
 
 fn main() {
     let mut show_seconds = 1;
-    let mut show_circle = true;
+    let mut show_circle = 1;
     let mut show_numbers = 2;
     /* ---------- ncurses initialisation ---------- */
     initscr();
@@ -140,11 +140,44 @@ fn main() {
         erase();
 
         // ----- draw the ellipse (the “clock”) -----
-        if show_circle {
+        if show_circle == 1 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
             draw_ellipse(cx, cy, a, b, '*' as chtype);
+            if has_colors() {
+                attroff(COLOR_PAIR(1));
+            }
+        } else if show_circle == 2 {
+            if has_colors() {
+                attron(COLOR_PAIR(1));
+            }
+            for i in 0..60 {
+                let (dx, dy) = polar_to_cartesian_ellipse(
+                    cx,
+                    cy,
+                    2.0 * PI * (i as f64) / 60.0,
+                    a as f64,
+                    b as f64,
+                );
+                if i%5 == 0 {
+                    draw_line(
+                        dx,
+                        dy,
+                        dx,
+                        dy,
+                        '*' as chtype,
+                    );
+                } else {
+                    draw_line(
+                        dx,
+                        dy,
+                        dx,
+                        dy,
+                        '.' as chtype,
+                    );
+                }
+            }
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
@@ -200,7 +233,7 @@ fn main() {
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            draw_line(cx, cy, sx, sy, 'S' as chtype);
+            draw_line(cx, cy, sx, sy, '.' as chtype);
             if has_colors() {
                 attroff(COLOR_PAIR(4));
             }
@@ -241,7 +274,10 @@ fn main() {
             }
         }
         if ch == 'c' as i32 || ch == 'C' as i32 {
-            show_circle = !show_circle;
+            show_circle += 1;
+            if show_circle > 2 {
+                show_circle %= 3;
+            }
         }
         if ch == 'n' as i32 || ch == 'N' as i32 {
             show_numbers += 1;

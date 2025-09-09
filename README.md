@@ -14,6 +14,6 @@ This creates the ```target/release/tag``` executable you can put anywhere.
 | Key | action  |
 | --- | ------- |
 | s   | seconds hand off / each second / continuous  |
-| c   | circle around clock on / off |
+| c   | circle around clock on / ticks / off |
 | n   | hours around the clock off / numbers / dot  |
 
