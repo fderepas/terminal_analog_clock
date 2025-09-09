@@ -161,11 +161,18 @@ fn main() {
                     b as f64,
                 );
                 if i%5 == 0 {
+                    let (ddx, ddy) = polar_to_cartesian_ellipse(
+                        cx,
+                        cy,
+                        2.0 * PI * (i as f64) / 60.0,
+                        (a as f64)*0.95,
+                        (b as f64)*0.95,
+                    );
                     draw_line(
                         dx,
                         dy,
-                        dx,
-                        dy,
+                        ddx,
+                        ddy,
                         '*' as chtype,
                     );
                 } else {
