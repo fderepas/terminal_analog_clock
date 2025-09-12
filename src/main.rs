@@ -393,7 +393,7 @@ fn main() {
             let _ = save_config(&user_config);
         }
 
-        if user_config.continuous_minutes == 1 {
+        if user_config.show_seconds == 2 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
