@@ -58,7 +58,7 @@ fn draw_ellipse(cx: i32, cy: i32, a: i32, b: i32, ch: chtype) {
     let a2 = (a as i64) * (a as i64);
     let b2 = (b as i64) * (b as i64);
 
-    // ---------- Region 1 (slope > –1) ----------
+    // ---------- Region 1 (slope > –1) ----------
     let mut x: i32 = 0;
     let mut y: i32 = b;
     let mut d1: i64 = b2 - a2 * b as i64 + (a2 / 4);
@@ -74,7 +74,7 @@ fn draw_ellipse(cx: i32, cy: i32, a: i32, b: i32, ch: chtype) {
         x += 1;
     }
 
-    // ---------- Region 2 (slope ≤ –1) ----------
+    // ---------- Region 2 (slope ≤ –1) ----------
     // The classic formula uses a half‑pixel offset (x+0.5) and (y‑1).
     // We compute it with `f64` to keep the 0.5 without casting problems.
     let mut d2: f64 = b2 as f64 * ((x as f64) + 0.5).powi(2)
@@ -197,7 +197,7 @@ fn main() {
         let cx = cols / 2;
         let cy = rows / 2;
 
-        // ----- choose radii so that width = 2 × height and everything fits -----
+        // ----- choose radii so that width = 2 × height and everything fits -----
         // a = horizontal radius, b = vertical radius, and a = 2·b.
         // Must satisfy: a <= cols/2‑1  and  b <= rows/2‑1.
         // Hence: b <= min(rows/2‑1, (cols/2‑1)/2)
@@ -270,11 +270,11 @@ fn main() {
         let hour = now.hour() % 12;
         let minute = now.minute();
         let second = match user_config.show_seconds {
-            1 => now.second(),
-            _ => now.second() * 1000 + (now.nanosecond() / 1_000_000),
+            2|4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
+            _ => now.second(),
         } as f64;
 
-        // Angles: 0 rad = 12 o’clock, increase clockwise.
+        // Angles: 0 rad = 12 o'clock, increase clockwise.
         let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0) / 12.0;
         let minute_angle = match user_config.continuous_minutes {
             0 => 2.0 * PI * (minute as f64) / 60.0,
@@ -311,14 +311,19 @@ fn main() {
         // ----- second hand -----
         if user_config.show_seconds > 0 {
             let second_angle = match user_config.show_seconds {
-                1 => 2.0 * PI * second / 60.0,
-                _ => 2.0 * PI * second / 60000.0,
+                2 | 4 => 2.0 * PI * second / 60000.0,
+                _ => 2.0 * PI * second / 60.0,
             };
             let (sx, sy) = polar_to_cartesian_ellipse(cx, cy, second_angle, a as f64, b as f64);
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            draw_line(cx, cy, sx, sy, '.' as chtype);
+            if user_config.show_seconds<3 {
+                draw_line(cx, cy, sx, sy, '.' as chtype);
+            } else {
+                let (bx, by) = polar_to_cartesian_ellipse(cx, cy, second_angle, (a as f64)*0.8, (b as f64)*0.8);
+                draw_line(bx, by, sx, sy, '.' as chtype);
+            }
             if has_colors() {
                 attroff(COLOR_PAIR(4));
             }
@@ -366,8 +371,8 @@ fn main() {
         }
         if ch == 's' as i32 || ch == 'S' as i32 {
             user_config.show_seconds += 1;
-            if user_config.show_seconds > 2 {
-                user_config.show_seconds %= 3;
+            if user_config.show_seconds > 4 {
+                user_config.show_seconds %= 5;
             }
             let _ = save_config(&user_config);
         }
@@ -393,7 +398,7 @@ fn main() {
             let _ = save_config(&user_config);
         }
 
-        if user_config.show_seconds == 2 {
+        if user_config.show_seconds == 2  || user_config.show_seconds == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
