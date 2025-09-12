@@ -101,6 +101,7 @@ fn main() {
     let mut show_seconds = 1;
     let mut show_circle = 1;
     let mut show_numbers = 2;
+    let mut continuous_minutes = 0;
     /* ---------- ncurses initialisation ---------- */
     initscr();
     cbreak();
@@ -188,16 +189,54 @@ fn main() {
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
+        } else if show_circle == 3 {
+            if has_colors() {
+                attron(COLOR_PAIR(1));
+            }
+            for i in 0..12 {
+                let (dx, dy) = polar_to_cartesian_ellipse(
+                    cx,
+                    cy,
+                    2.0 * PI * (i as f64) / 12.0,
+                    a as f64,
+                    b as f64,
+                );
+                let (ddx, ddy) = polar_to_cartesian_ellipse(
+                    cx,
+                    cy,
+                    2.0 * PI * (i as f64) / 60.0,
+                    (a as f64)*0.95,
+                    (b as f64)*0.95,
+                );
+                draw_line(
+                    dx,
+                    dy,
+                    dx,
+                    dy,
+                    '*' as chtype,
+                );
+            }
+            if has_colors() {
+                attroff(COLOR_PAIR(1));
+            }
         }
 
         // ----- current local time -----
         let now = Local::now();
         let hour = now.hour() % 12;
         let minute = now.minute();
+        let second = match show_seconds {
+            1 => now.second(),
+            _ => now.second() * 1000 + (now.nanosecond() / 1_000_000),
+        } as f64;
+
 
         // Angles: 0 rad = 12 o’clock, increase clockwise.
         let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0) / 12.0;
-        let minute_angle = 2.0 * PI * (minute as f64) / 60.0;
+        let minute_angle = match continuous_minutes {
+            0 => 2.0 * PI * (minute as f64) / 60.0,
+            _ => 2.0 * PI * ((minute as f64) + (second as f64) / 60.0) / 60.0
+        };
 
         for i in 1..13 {
             if has_colors() {
@@ -228,10 +267,6 @@ fn main() {
 
         // ----- second hand -----
         if show_seconds > 0 {
-            let second = match show_seconds {
-                1 => now.second(),
-                _ => now.second() * 1000 + (now.nanosecond() / 1_000_000),
-            } as f64;
             let second_angle = match show_seconds {
                 1 => 2.0 * PI * second / 60.0,
                 _ => 2.0 * PI * second / 60000.0,
@@ -251,7 +286,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(3));
         }
-        draw_line(cx, cy, mx, my, 'M' as chtype);
+        draw_line(cx+(cx-mx)/10, cy+(cy-my)/10, mx, my, 'M' as chtype);
         if has_colors() {
             attroff(COLOR_PAIR(3));
         }
@@ -261,7 +296,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(2));
         }
-        draw_line(cx, cy, hx, hy, 'H' as chtype);
+        draw_line(cx+(cx-hx)/10, cy+(cy-hy)/10, hx, hy, 'H' as chtype);
         if has_colors() {
             attroff(COLOR_PAIR(2));
         }
@@ -282,14 +317,20 @@ fn main() {
         }
         if ch == 'c' as i32 || ch == 'C' as i32 {
             show_circle += 1;
-            if show_circle > 2 {
-                show_circle %= 3;
+            if show_circle > 3 {
+                show_circle %= 4;
             }
         }
         if ch == 'n' as i32 || ch == 'N' as i32 {
             show_numbers += 1;
             if show_numbers > 2 {
                 show_numbers %= 3;
+            }
+        }
+        if ch == 'm' as i32 || ch == 'M' as i32 {
+            continuous_minutes += 1;
+            if continuous_minutes > 1 {
+                continuous_minutes %= 2;
             }
         }
 
