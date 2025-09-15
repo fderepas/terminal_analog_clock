@@ -1,3 +1,15 @@
+/*
+Colors are defined in curses.h:
+
+#define COLOR_BLACK	0
+#define COLOR_RED	1
+#define COLOR_GREEN	2
+#define COLOR_YELLOW	3
+#define COLOR_BLUE	4
+#define COLOR_MAGENTA	5
+#define COLOR_CYAN	6
+#define COLOR_WHITE	7
+ */
 use chrono::{Local, Timelike};
 use ncurses::*;
 use once_cell::sync::Lazy;
@@ -21,6 +33,7 @@ struct UserConfig {
     show_circle: i16,
     show_numbers: i16,
     continuous_minutes: i16,
+    delta_a: i16,
 }
 
 fn load_user_from_json(path: &str) -> std::io::Result<UserConfig> {
@@ -129,7 +142,7 @@ fn polar_to_cartesian_ellipse(cx: i32, cy: i32, angle: f64, a: f64, b: f64) -> (
     (x.round() as i32, y.round() as i32)
 }
 
-const USER_CONFIG_FILE: &'static str = "~/.terminal_analog_clock.json";
+const USER_CONFIG_FILE: &' str = "~/.terminal_analog_clock.json";
 
 static GLOBAL_USER_CONFIG: Lazy<Mutex<UserConfig>> = Lazy::new(|| {
     Mutex::new(UserConfig {
@@ -144,6 +157,7 @@ static GLOBAL_USER_CONFIG: Lazy<Mutex<UserConfig>> = Lazy::new(|| {
         show_circle: 1,
         show_numbers: 2,
         continuous_minutes: 0,
+        delta_a: 0
     })
 });
 
@@ -173,6 +187,8 @@ fn main() {
 
     // Init ncurses
     initscr();
+    start_color();
+    use_default_colors();
     cbreak();
     noecho();
     keypad(stdscr(), true);
@@ -181,11 +197,11 @@ fn main() {
 
     if has_colors() {
         start_color();
-        init_pair(1, user_config.color_circle, COLOR_BLACK); // ellipse
-        init_pair(2, user_config.color_hours, COLOR_BLACK); // hour hand
-        init_pair(3, user_config.color_minutes, COLOR_BLACK); // minute hand
-        init_pair(4, user_config.color_seconds, COLOR_BLACK); // second hand
-        init_pair(5, user_config.color_digits, COLOR_BLACK); // digits
+        init_pair(1, user_config.color_circle, -1); // ellipse
+        init_pair(2, user_config.color_hours, -1); // hour hand
+        init_pair(3, user_config.color_minutes, -1); // minute hand
+        init_pair(4, user_config.color_seconds, -1); // second hand
+        init_pair(5, user_config.color_digits, -1); // digits
     }
 
     /* ---------- main loop ---------- */
@@ -204,7 +220,8 @@ fn main() {
         let max_b = min(rows / 2 - 1, (cols / 2 - 1) / 2);
         let b = max_b; // vertical radius (the “height” of the clock)
                        //        let a = b;          // horizontal radius (twice the height)
-        let a = 2 * b; // horizontal radius (twice the height)
+        // horizontal radius = (twice the height) + custom offset
+        let a = 2 * b + (user_config.delta_a as i32); 
 
         // ----- clear screen -----
         erase();
@@ -397,13 +414,25 @@ fn main() {
             }
             let _ = save_config(&user_config);
         }
+        if ch == '+' as i32 {
+            if (user_config.delta_a as i32)<b {
+                user_config.delta_a += 1;
+            }
+            let _ = save_config(&user_config);
+        }
+        if ch == '-' as i32 {
+            if (user_config.delta_a as i32)>-b {
+                user_config.delta_a -= 1;
+            }
+            let _ = save_config(&user_config);
+        }
 
         if user_config.show_seconds == 2  || user_config.show_seconds == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
             // Sleep 1 second
-            napms(1000);
+            napms(333);
         }
     }
 
