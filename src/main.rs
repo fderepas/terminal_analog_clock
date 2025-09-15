@@ -157,7 +157,7 @@ static GLOBAL_USER_CONFIG: Lazy<Mutex<UserConfig>> = Lazy::new(|| {
         show_circle: 1,
         show_numbers: 2,
         continuous_minutes: 0,
-        delta_a: 0
+        delta_a: 0,
     })
 });
 
@@ -220,8 +220,8 @@ fn main() {
         let max_b = min(rows / 2 - 1, (cols / 2 - 1) / 2);
         let b = max_b; // vertical radius (the “height” of the clock)
                        //        let a = b;          // horizontal radius (twice the height)
-        // horizontal radius = (twice the height) + custom offset
-        let a = 2 * b + (user_config.delta_a as i32); 
+                       // horizontal radius = (twice the height) + custom offset
+        let a = 2 * b + (user_config.delta_a as i32);
 
         // ----- clear screen -----
         erase();
@@ -287,7 +287,7 @@ fn main() {
         let hour = now.hour() % 12;
         let minute = now.minute();
         let second = match user_config.show_seconds {
-            2|4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
+            2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
             _ => now.second(),
         } as f64;
 
@@ -335,10 +335,16 @@ fn main() {
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            if user_config.show_seconds<3 {
+            if user_config.show_seconds < 3 {
                 draw_line(cx, cy, sx, sy, '.' as chtype);
             } else {
-                let (bx, by) = polar_to_cartesian_ellipse(cx, cy, second_angle, (a as f64)*0.8, (b as f64)*0.8);
+                let (bx, by) = polar_to_cartesian_ellipse(
+                    cx,
+                    cy,
+                    second_angle,
+                    (a as f64) * 0.8,
+                    (b as f64) * 0.8,
+                );
                 draw_line(bx, by, sx, sy, '.' as chtype);
             }
             if has_colors() {
@@ -415,19 +421,19 @@ fn main() {
             let _ = save_config(&user_config);
         }
         if ch == '+' as i32 {
-            if (user_config.delta_a as i32)<b {
+            if (user_config.delta_a as i32) < b {
                 user_config.delta_a += 1;
             }
             let _ = save_config(&user_config);
         }
         if ch == '-' as i32 {
-            if (user_config.delta_a as i32)>-b {
+            if (user_config.delta_a as i32) > -b {
                 user_config.delta_a -= 1;
             }
             let _ = save_config(&user_config);
         }
 
-        if user_config.show_seconds == 2  || user_config.show_seconds == 4 {
+        if user_config.show_seconds == 2 || user_config.show_seconds == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
