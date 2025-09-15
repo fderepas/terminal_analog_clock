@@ -142,7 +142,7 @@ fn polar_to_cartesian_ellipse(cx: i32, cy: i32, angle: f64, a: f64, b: f64) -> (
     (x.round() as i32, y.round() as i32)
 }
 
-const USER_CONFIG_FILE: &' str = "~/.terminal_analog_clock.json";
+const USER_CONFIG_FILE: &'static str = "~/.terminal_analog_clock.json";
 
 static GLOBAL_USER_CONFIG: Lazy<Mutex<UserConfig>> = Lazy::new(|| {
     Mutex::new(UserConfig {
