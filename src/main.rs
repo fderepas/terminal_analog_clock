@@ -107,6 +107,50 @@ fn draw_ellipse(cx: i32, cy: i32, a: i32, b: i32, ch: chtype) {
 }
 
 /// Bresenham line drawing – draws a straight line from (x0,y0) to (x1,y1)
+/// using a repeating string pattern for the line's texture.
+fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, pattern: &str) {
+    // If the pattern is empty, there's nothing to draw.
+    if pattern.is_empty() {
+        return;
+    }
+
+    let mut x0 = x0;
+    let mut y0 = y0;
+    let dx = (x1 - x0).abs();
+    let sx = if x0 < x1 { 1 } else { -1 };
+    let dy = -(y1 - y0).abs();
+    let sy = if y0 < y1 { 1 } else { -1 };
+    let mut err = dx + dy; // error value
+
+    // Create an iterator that cycles through the characters of the pattern indefinitely.
+    let mut pattern_chars = pattern.chars().cycle();
+
+    loop {
+        // Get the next character from our cycling iterator and draw it.
+        // .unwrap() is safe here because we checked that the pattern is not empty.
+        let ch = pattern_chars.next().unwrap();
+        mvaddch(y0, x0, ch as chtype);
+
+        // Check for the end of the line
+        if x0 == x1 && y0 == y1 {
+            break;
+        }
+
+        // Bresenham's algorithm logic
+        let e2 = 2 * err;
+        if e2 >= dy {
+            err += dy;
+            x0 += sx;
+        }
+        if e2 <= dx {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+/*
+/// Bresenham line drawing – draws a straight line from (x0,y0) to (x1,y1)
 fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, ch: chtype) {
     let mut x0 = x0;
     let mut y0 = y0;
@@ -132,6 +176,7 @@ fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, ch: chtype) {
         }
     }
 }
+ */
 
 /// Convert an angle (radians) into screen coordinates for an ellipse with
 /// horizontal radius `a` and vertical radius `b`.
@@ -255,9 +300,9 @@ fn main() {
                         (a as f64) * 0.95,
                         (b as f64) * 0.95,
                     );
-                    draw_line(dx, dy, ddx, ddy, '*' as chtype);
+                    draw_line(dx, dy, ddx, ddy, "*");
                 } else {
-                    draw_line(dx, dy, dx, dy, '.' as chtype);
+                    draw_line(dx, dy, dx, dy, ".");
                 }
             }
             if has_colors() {
@@ -275,7 +320,7 @@ fn main() {
                     a as f64,
                     b as f64,
                 );
-                draw_line(dx, dy, dx, dy, '*' as chtype);
+                draw_line(dx, dy, dx, dy, "*");
             }
             if has_colors() {
                 attroff(COLOR_PAIR(1));
@@ -311,17 +356,18 @@ fn main() {
             );
             if user_config.show_numbers == 2 {
                 if i > 9 {
-                    draw_line(dx - 1, dy, dx, dy, '1' as chtype);
+                    draw_line(dx - 1, dy, dx, dy, "1");
                 }
+                let s =  (i % 10).to_string();
                 draw_line(
                     dx,
                     dy,
                     dx,
                     dy,
-                    std::char::from_digit(i % 10, 10).unwrap() as chtype,
+                    &s,
                 );
             } else if user_config.show_numbers == 1 {
-                draw_line(dx, dy, dx, dy, '*' as chtype);
+                draw_line(dx, dy, dx, dy, "*");
             }
         }
 
@@ -336,7 +382,7 @@ fn main() {
                 attron(COLOR_PAIR(4));
             }
             if user_config.show_seconds < 3 {
-                draw_line(cx, cy, sx, sy, '.' as chtype);
+                draw_line(cx, cy, sx, sy, ".");
             } else {
                 let (bx, by) = polar_to_cartesian_ellipse(
                     cx,
@@ -345,7 +391,7 @@ fn main() {
                     (a as f64) * 0.8,
                     (b as f64) * 0.8,
                 );
-                draw_line(bx, by, sx, sy, '.' as chtype);
+                draw_line(bx, by, sx, sy, ".");
             }
             if has_colors() {
                 attroff(COLOR_PAIR(4));
@@ -362,7 +408,7 @@ fn main() {
             cy + (cy - my) / 10,
             mx,
             my,
-            'M' as chtype,
+            "minutes",
         );
         if has_colors() {
             attroff(COLOR_PAIR(3));
@@ -378,7 +424,7 @@ fn main() {
             cy + (cy - hy) / 10,
             hx,
             hy,
-            'H' as chtype,
+            "HOURS",
         );
         if has_colors() {
             attroff(COLOR_PAIR(2));
