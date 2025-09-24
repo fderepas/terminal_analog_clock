@@ -108,14 +108,16 @@ fn draw_ellipse(cx: i32, cy: i32, a: i32, b: i32, ch: chtype) {
 
 /// Bresenham line drawing – draws a straight line from (x0,y0) to (x1,y1)
 /// using a repeating string pattern for the line's texture.
-fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, pattern: &str) {
+fn draw_line(x_ori0: i32, y_ori0: i32, x_ori1: i32, y_ori1: i32, pattern: &str) {
     // If the pattern is empty, there's nothing to draw.
     if pattern.is_empty() {
         return;
     }
 
-    let mut x0 = x0;
-    let mut y0 = y0;
+    let mut x0 = if x_ori0 < x_ori1 { x_ori0 } else { x_ori1 };
+    let mut y0 = if x_ori0 < x_ori1 { y_ori0 } else { y_ori1 };
+    let mut x1 = if x_ori0 < x_ori1 { x_ori1 } else { x_ori0 };
+    let mut y1 = if x_ori0 < x_ori1 { y_ori1 } else { y_ori0 };
     let dx = (x1 - x0).abs();
     let sx = if x0 < x1 { 1 } else { -1 };
     let dy = -(y1 - y0).abs();
