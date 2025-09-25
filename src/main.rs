@@ -113,11 +113,15 @@ fn draw_line(x_ori0: i32, y_ori0: i32, x_ori1: i32, y_ori1: i32, pattern: &str) 
     if pattern.is_empty() {
         return;
     }
-
-    let mut x0 = if x_ori0 < x_ori1 { x_ori0 } else { x_ori1 };
-    let mut y0 = if x_ori0 < x_ori1 { y_ori0 } else { y_ori1 };
-    let mut x1 = if x_ori0 < x_ori1 { x_ori1 } else { x_ori0 };
-    let mut y1 = if x_ori0 < x_ori1 { y_ori1 } else { y_ori0 };
+    let mut start_at_0 = x_ori0 < x_ori1;
+    if x_ori0 == x_ori1 {
+        // the writing is vertical, write from top to bottom
+        start_at_0 = y_ori0 < y_ori1
+    }
+    let mut x0 = if start_at_0 { x_ori0 } else { x_ori1 };
+    let mut y0 = if start_at_0 { y_ori0 } else { y_ori1 };
+    let mut x1 = if start_at_0 { x_ori1 } else { x_ori0 };
+    let mut y1 = if start_at_0 { y_ori1 } else { y_ori0 };
     let dx = (x1 - x0).abs();
     let sx = if x0 < x1 { 1 } else { -1 };
     let dy = -(y1 - y0).abs();
