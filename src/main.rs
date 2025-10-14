@@ -120,8 +120,8 @@ fn draw_line(x_ori0: i32, y_ori0: i32, x_ori1: i32, y_ori1: i32, pattern: &str) 
     }
     let mut x0 = if start_at_0 { x_ori0 } else { x_ori1 };
     let mut y0 = if start_at_0 { y_ori0 } else { y_ori1 };
-    let mut x1 = if start_at_0 { x_ori1 } else { x_ori0 };
-    let mut y1 = if start_at_0 { y_ori1 } else { y_ori0 };
+    let x1 = if start_at_0 { x_ori1 } else { x_ori0 };
+    let y1 = if start_at_0 { y_ori1 } else { y_ori0 };
     let dx = (x1 - x0).abs();
     let sx = if x0 < x1 { 1 } else { -1 };
     let dy = -(y1 - y0).abs();
@@ -154,35 +154,6 @@ fn draw_line(x_ori0: i32, y_ori0: i32, x_ori1: i32, y_ori1: i32, pattern: &str) 
         }
     }
 }
-
-/*
-/// Bresenham line drawing – draws a straight line from (x0,y0) to (x1,y1)
-fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, ch: chtype) {
-    let mut x0 = x0;
-    let mut y0 = y0;
-    let dx = (x1 - x0).abs();
-    let sx = if x0 < x1 { 1 } else { -1 };
-    let dy = -(y1 - y0).abs();
-    let sy = if y0 < y1 { 1 } else { -1 };
-    let mut err = dx + dy; // error value
-
-    loop {
-        mvaddch(y0, x0, ch);
-        if x0 == x1 && y0 == y1 {
-            break;
-        }
-        let e2 = 2 * err;
-        if e2 >= dy {
-            err += dy;
-            x0 += sx;
-        }
-        if e2 <= dx {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
- */
 
 /// Convert an angle (radians) into screen coordinates for an ellipse with
 /// horizontal radius `a` and vertical radius `b`.
