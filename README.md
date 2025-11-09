@@ -14,7 +14,10 @@ A simple, customizable analog clock that runs directly in your terminal.
 
 ## Installation
 
-1. **Prerequisites**: Ensure you have [Rust and Cargo](https://rustup.rs/) installed.
+1. **Prerequisites**: Ensure you have [Rust and Cargo](https://rustup.rs/) installed. Also make sure that ncurses header files are installed:
+```
+sudo apt install -y libncurses-dev
+```
 
 2. **Build**: Clone the repository and run the following command from the project's root directory:
 
