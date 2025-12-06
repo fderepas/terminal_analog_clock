@@ -4,5 +4,4 @@ default:
 	. "${HOME}/.cargo/env" && cargo run --release
 
 clean:
-	cargo clean
-	rm -rf *~
+	rm -rf target `find . -name \*~`
