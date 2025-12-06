@@ -20,6 +20,8 @@ use std::f64::consts::PI;
 use std::fs::File;
 use std::io::{Read, Write};
 
+mod config_edit;
+
 #[derive(Serialize, Clone, Deserialize, Debug)]
 struct UserConfig {
     version: u32,
@@ -412,6 +414,9 @@ fn main() {
 
         // quit on 'q' or 'Q'
         let ch = getch();
+        if ch== ' ' as i32 {
+            config_edit::terminal_edit_json("/home/fabrice.derepas@canonical.com/git/tac/config.json");
+        }
         if ch == 'q' as i32 || ch == 'Q' as i32 {
             break;
         }
