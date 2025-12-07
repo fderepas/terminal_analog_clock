@@ -22,6 +22,8 @@ use std::io::{Read, Write};
 
 mod config_edit;
 
+use config_edit::{Config};
+
 #[derive(Serialize, Clone, Deserialize, Debug)]
 struct UserConfig {
     version: u32,
@@ -38,6 +40,8 @@ struct UserConfig {
     delta_a: i16,
 }
 
+
+
 fn load_user_from_json(path: &str) -> std::io::Result<UserConfig> {
     let expanded = shellexpand::tilde(path).as_ref().to_owned();
     let mut file = File::open(expanded)?;
@@ -49,6 +53,10 @@ fn load_user_from_json(path: &str) -> std::io::Result<UserConfig> {
 
     Ok(user)
 }
+
+//fn read_config(path: &str) -> std::io::Result<UserConfig> {
+//    
+//}
 
 /// Plot the four symmetric points of an ellipse.
 fn plot_ellipse_points(cx: i32, cy: i32, x: i32, y: i32, ch: chtype) {
@@ -196,22 +204,7 @@ fn save_config(
     Ok(())
 }
 
-fn main() {
-    // Set configuration
-    let mut user_config = GLOBAL_USER_CONFIG.lock();
-    match load_user_from_json(USER_CONFIG_FILE) {
-        Ok(loaded_user) => {
-            *user_config = loaded_user;
-        }
-        Err(_) => {
-            // no existing config file, use defaut values
-        }
-    }
-    let _ = save_config(&user_config);
-
-    // Init ncurses
-    initscr();
-    start_color();
+fn restore_ncurses_context(user_config: &parking_lot::lock_api::MutexGuard<'_, parking_lot::RawMutex, UserConfig>) {
     use_default_colors();
     cbreak();
     noecho();
@@ -227,7 +220,34 @@ fn main() {
         init_pair(4, user_config.color_seconds, -1); // second hand
         init_pair(5, user_config.color_digits, -1); // digits
     }
+}
 
+fn main() {
+
+    let mut cfg = Config::load("/home/fabrice.derepas@canonical.com/git/terminal_analog_clock/config.json");
+
+    // Set configuration
+    let mut user_config = GLOBAL_USER_CONFIG.lock();
+    match load_user_from_json(USER_CONFIG_FILE) {
+        Ok(loaded_user) => {
+            *user_config = loaded_user;
+        }
+        Err(_) => {
+            // no existing config file, use defaut values
+        }
+    }
+    let _ = save_config(&user_config);
+
+    // Init ncurses
+    setlocale(LcCategory::all, "");
+    initscr();
+    start_color();
+    restore_ncurses_context(&user_config);
+
+    //config_edit::set_option("/home/fabrice.derepas@canonical.com/git/terminal_analog_clock/config.json","clock border", 0);
+    //endwin();
+    //return;
+    
     /* ---------- main loop ---------- */
     loop {
         // ----- terminal size & centre -----
@@ -414,8 +434,9 @@ fn main() {
 
         // quit on 'q' or 'Q'
         let ch = getch();
-        if ch== ' ' as i32 {
-            config_edit::terminal_edit_json("/home/fabrice.derepas@canonical.com/git/tac/config.json");
+        if ch== 27 as i32 {
+            cfg.terminal_edit_json();
+            restore_ncurses_context(&user_config);
         }
         if ch == 'q' as i32 || ch == 'Q' as i32 {
             break;
@@ -433,6 +454,7 @@ fn main() {
                 user_config.show_circle %= 4;
             }
             let _ = save_config(&user_config);
+            cfg.set_option("clock border",user_config.show_circle as i64);
         }
         if ch == 'n' as i32 || ch == 'N' as i32 {
             user_config.show_numbers += 1;
@@ -440,6 +462,7 @@ fn main() {
                 user_config.show_numbers %= 3;
             }
             let _ = save_config(&user_config);
+            cfg.set_option("numbers",user_config.show_numbers as i64);
         }
         if ch == 'm' as i32 || ch == 'M' as i32 {
             user_config.continuous_minutes += 1;
@@ -447,18 +470,21 @@ fn main() {
                 user_config.continuous_minutes %= 2;
             }
             let _ = save_config(&user_config);
+            cfg.set_bool("continuous minutes",user_config.continuous_minutes == 1);
         }
         if ch == '+' as i32 {
             if (user_config.delta_a as i32) < b {
                 user_config.delta_a += 1;
             }
             let _ = save_config(&user_config);
+            cfg.set_int("clock width",user_config.delta_a as i64);
         }
         if ch == '-' as i32 {
             if (user_config.delta_a as i32) > -b {
                 user_config.delta_a -= 1;
             }
             let _ = save_config(&user_config);
+            cfg.set_int("clock width",user_config.delta_a as i64);
         }
 
         if user_config.show_seconds == 2 || user_config.show_seconds == 4 {
@@ -466,7 +492,10 @@ fn main() {
             napms(30);
         } else {
             // Sleep 1 second
-            napms(333);
+            //napms(333);
+            // Sleep .2 second
+            napms(66);
+            
         }
     }
 
