@@ -1,62 +1,14 @@
-/*
-Colors are defined in curses.h:
 
-#define COLOR_BLACK	0
-#define COLOR_RED	1
-#define COLOR_GREEN	2
-#define COLOR_YELLOW	3
-#define COLOR_BLUE	4
-#define COLOR_MAGENTA	5
-#define COLOR_CYAN	6
-#define COLOR_WHITE	7
- */
 use chrono::{Local, Timelike};
 use ncurses::*;
-use once_cell::sync::Lazy;
-use parking_lot::Mutex;
-use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::f64::consts::PI;
-use std::fs::File;
-use std::io::{Read, Write};
+use std::env;
+use std::path::PathBuf;
 
 mod config_edit;
 
 use config_edit::{Config};
-
-#[derive(Serialize, Clone, Deserialize, Debug)]
-struct UserConfig {
-    version: u32,
-    color_background: i16,
-    color_circle: i16,
-    color_digits: i16,
-    color_seconds: i16,
-    color_minutes: i16,
-    color_hours: i16,
-    show_seconds: i16,
-    show_circle: i16,
-    show_numbers: i16,
-    continuous_minutes: i16,
-    delta_a: i16,
-}
-
-
-
-fn load_user_from_json(path: &str) -> std::io::Result<UserConfig> {
-    let expanded = shellexpand::tilde(path).as_ref().to_owned();
-    let mut file = File::open(expanded)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    // Deserialize the JSON string back into a UserConfig struct
-    let user: UserConfig = serde_json::from_str(&contents)?;
-
-    Ok(user)
-}
-
-//fn read_config(path: &str) -> std::io::Result<UserConfig> {
-//    
-//}
 
 /// Plot the four symmetric points of an ellipse.
 fn plot_ellipse_points(cx: i32, cy: i32, x: i32, y: i32, ch: chtype) {
@@ -174,37 +126,7 @@ fn polar_to_cartesian_ellipse(cx: i32, cy: i32, angle: f64, a: f64, b: f64) -> (
     (x.round() as i32, y.round() as i32)
 }
 
-const USER_CONFIG_FILE: &'static str = "~/.terminal_analog_clock.json";
-
-static GLOBAL_USER_CONFIG: Lazy<Mutex<UserConfig>> = Lazy::new(|| {
-    Mutex::new(UserConfig {
-        version: 1,
-        color_background: COLOR_BLACK,
-        color_circle: COLOR_GREEN,
-        color_digits: COLOR_WHITE,
-        color_seconds: COLOR_CYAN,
-        color_minutes: COLOR_YELLOW,
-        color_hours: COLOR_RED,
-        show_seconds: 1,
-        show_circle: 1,
-        show_numbers: 2,
-        continuous_minutes: 0,
-        delta_a: 0,
-    })
-});
-
-fn save_config(
-    user_config: &parking_lot::lock_api::MutexGuard<'_, parking_lot::RawMutex, UserConfig>,
-) -> std::io::Result<()> {
-    let ug: &UserConfig = &user_config;
-    let json_string = serde_json::to_string_pretty(ug)?;
-    let expanded = shellexpand::tilde(USER_CONFIG_FILE).as_ref().to_owned();
-    let mut file = File::create(expanded)?;
-    file.write_all(json_string.as_bytes())?;
-    Ok(())
-}
-
-fn restore_ncurses_context(user_config: &parking_lot::lock_api::MutexGuard<'_, parking_lot::RawMutex, UserConfig>) {
+fn restore_ncurses_context(cfg: &Config) {
     use_default_colors();
     cbreak();
     noecho();
@@ -214,40 +136,35 @@ fn restore_ncurses_context(user_config: &parking_lot::lock_api::MutexGuard<'_, p
 
     if has_colors() {
         start_color();
-        init_pair(1, user_config.color_circle, -1); // ellipse
-        init_pair(2, user_config.color_hours, -1); // hour hand
-        init_pair(3, user_config.color_minutes, -1); // minute hand
-        init_pair(4, user_config.color_seconds, -1); // second hand
-        init_pair(5, user_config.color_digits, -1); // digits
+        let circle_color =cfg.get_option("circle color") as i16;
+        let hours_color =cfg.get_option("hours color") as i16;
+        let minutes_color =cfg.get_option("minutes color") as i16;
+        let seconds_color =cfg.get_option("seconds color") as i16;
+        let digits_color =cfg.get_option("digits color") as i16;
+        
+        init_pair(1, circle_color, -1); // ellipse
+        init_pair(2, hours_color, -1); // hour hand
+        init_pair(3, minutes_color, -1); // minute hand
+        init_pair(4, seconds_color, -1); // second hand
+        init_pair(5, digits_color, -1); // digits
     }
 }
 
 fn main() {
+    let home = env::var("HOME").expect("Could not find HOME environment variable");
 
-    let mut cfg = Config::load("/home/fabrice.derepas@canonical.com/git/terminal_analog_clock/config.json");
+    // 2. Build the path safely
+    let mut path = PathBuf::from(home);
+    path.push(".tac.json");
+    let mut cfg = Config::load(path.to_str().unwrap());
 
-    // Set configuration
-    let mut user_config = GLOBAL_USER_CONFIG.lock();
-    match load_user_from_json(USER_CONFIG_FILE) {
-        Ok(loaded_user) => {
-            *user_config = loaded_user;
-        }
-        Err(_) => {
-            // no existing config file, use defaut values
-        }
-    }
-    let _ = save_config(&user_config);
 
     // Init ncurses
     setlocale(LcCategory::all, "");
     initscr();
     start_color();
-    restore_ncurses_context(&user_config);
+    restore_ncurses_context(&cfg);
 
-    //config_edit::set_option("/home/fabrice.derepas@canonical.com/git/terminal_analog_clock/config.json","clock border", 0);
-    //endwin();
-    //return;
-    
     /* ---------- main loop ---------- */
     loop {
         // ----- terminal size & centre -----
@@ -265,13 +182,13 @@ fn main() {
         let b = max_b; // vertical radius (the “height” of the clock)
                        //        let a = b;          // horizontal radius (twice the height)
                        // horizontal radius = (twice the height) + custom offset
-        let a = 2 * b + (user_config.delta_a as i32);
+        let a = 2 * b + (cfg.get_int("clock width") as i32); 
 
         // ----- clear screen -----
         erase();
 
         // ----- draw the ellipse (the “clock”) -----
-        if user_config.show_circle == 1 {
+        if cfg.get_option("clock border") /* user_config.show_circle */ == 1 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -279,7 +196,7 @@ fn main() {
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
-        } else if user_config.show_circle == 2 {
+        } else if cfg.get_option("clock border") == 2 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -307,7 +224,7 @@ fn main() {
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
-        } else if user_config.show_circle == 3 {
+        } else if cfg.get_option("clock border") == 3 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -330,16 +247,17 @@ fn main() {
         let now = Local::now();
         let hour = now.hour() % 12;
         let minute = now.minute();
-        let second = match user_config.show_seconds {
+        let second = match cfg.get_int("display seconds") /*user_config.show_seconds*/ {
             2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
             _ => now.second(),
         } as f64;
 
         // Angles: 0 rad = 12 o'clock, increase clockwise.
         let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0) / 12.0;
-        let minute_angle = match user_config.continuous_minutes {
-            0 => 2.0 * PI * (minute as f64) / 60.0,
-            _ => 2.0 * PI * ((minute as f64) + (second as f64) / 60.0) / 60.0,
+        let minute_angle = if cfg.get_bool("continuous minutes") /* user_config.continuous_minutes */ {
+            2.0 * PI * ((minute as f64) + (second as f64) / 60.0) / 60.0
+        } else {
+            2.0 * PI * (minute as f64) / 60.0
         };
 
         for i in 1..13 {
@@ -353,7 +271,7 @@ fn main() {
                 (a as f64) * 0.9,
                 (b as f64) * 0.9,
             );
-            if user_config.show_numbers == 2 {
+            if cfg.get_int("numbers") /* user_config.show_numbers */ == 2 {
                 if i > 9 {
                     draw_line(dx - 1, dy, dx, dy, "1");
                 }
@@ -365,14 +283,14 @@ fn main() {
                     dy,
                     &s,
                 );
-            } else if user_config.show_numbers == 1 {
+            } else if cfg.get_int("numbers") /* user_config.show_numbers*/ == 1 {
                 draw_line(dx, dy, dx, dy, "*");
             }
         }
 
         // ----- second hand -----
-        if user_config.show_seconds > 0 {
-            let second_angle = match user_config.show_seconds {
+        if cfg.get_int("display seconds") /* user_config.show_seconds*/ > 0 {
+            let second_angle = match cfg.get_int("display seconds") {
                 2 | 4 => 2.0 * PI * second / 60000.0,
                 _ => 2.0 * PI * second / 60.0,
             };
@@ -380,7 +298,7 @@ fn main() {
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            if user_config.show_seconds < 3 {
+            if cfg.get_int("display seconds") < 3 {
                 draw_line(cx, cy, sx, sy, ".");
             } else {
                 let (bx, by) = polar_to_cartesian_ellipse(
@@ -436,58 +354,39 @@ fn main() {
         let ch = getch();
         if ch== 27 as i32 {
             cfg.terminal_edit_json();
-            restore_ncurses_context(&user_config);
+            restore_ncurses_context(&cfg);
         }
         if ch == 'q' as i32 || ch == 'Q' as i32 {
             break;
         }
         if ch == 's' as i32 || ch == 'S' as i32 {
-            user_config.show_seconds += 1;
-            if user_config.show_seconds > 4 {
-                user_config.show_seconds %= 5;
-            }
-            let _ = save_config(&user_config);
+            cfg.set_option("display seconds",
+                           (cfg.get_int("display seconds") +1) % 5);
         }
         if ch == 'c' as i32 || ch == 'C' as i32 {
-            user_config.show_circle += 1;
-            if user_config.show_circle > 3 {
-                user_config.show_circle %= 4;
-            }
-            let _ = save_config(&user_config);
-            cfg.set_option("clock border",user_config.show_circle as i64);
+            cfg.set_option("clock border",
+                           ((cfg.get_option("clock border") as i64) +1) % 4);
         }
         if ch == 'n' as i32 || ch == 'N' as i32 {
-            user_config.show_numbers += 1;
-            if user_config.show_numbers > 2 {
-                user_config.show_numbers %= 3;
-            }
-            let _ = save_config(&user_config);
-            cfg.set_option("numbers",user_config.show_numbers as i64);
+            cfg.set_option("numbers",
+                           ((cfg.get_option("numbers") as i64) +1) % 3);
         }
         if ch == 'm' as i32 || ch == 'M' as i32 {
-            user_config.continuous_minutes += 1;
-            if user_config.continuous_minutes > 1 {
-                user_config.continuous_minutes %= 2;
-            }
-            let _ = save_config(&user_config);
-            cfg.set_bool("continuous minutes",user_config.continuous_minutes == 1);
+            cfg.set_bool("continuous minutes",
+                         !cfg.get_bool("continuous minutes"));
         }
         if ch == '+' as i32 {
-            if (user_config.delta_a as i32) < b {
-                user_config.delta_a += 1;
+            if cfg.get_int("clock width")  < (b as i64) {
+                cfg.set_int("clock width",cfg.get_int("clock width") -1);
             }
-            let _ = save_config(&user_config);
-            cfg.set_int("clock width",user_config.delta_a as i64);
         }
         if ch == '-' as i32 {
-            if (user_config.delta_a as i32) > -b {
-                user_config.delta_a -= 1;
+            if cfg.get_int("clock width")  > (-b as i64) {
+                cfg.set_int("clock width",cfg.get_int("clock width") -1);
             }
-            let _ = save_config(&user_config);
-            cfg.set_int("clock width",user_config.delta_a as i64);
         }
 
-        if user_config.show_seconds == 2 || user_config.show_seconds == 4 {
+        if cfg.get_int("display seconds") == 2 || cfg.get_int("display seconds") == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {

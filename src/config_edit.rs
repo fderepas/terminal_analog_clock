@@ -206,14 +206,25 @@ impl Config {
                     }
                 },
                 Entry {
+                    key: "display seconds".into(),
+                    value: Value::Choice {
+                        options: vec![
+                            "no display".into(),
+                            "full each second".into(),
+                            "full continuous".into(),
+                            "end of hand each second".into(),
+                            "end of hand full continuous".into()],
+                        selected: 1
+                    }
+                },
+                Entry {
                     key: "numbers".into(),
                     value: Value::Choice {
                         options: vec![
-                            "full".into(),
-                            "dot and hours".into(),
-                            "hours".into(),
-                            "no border".into()],
-                        selected: 1
+                            "no numbers".into(),
+                            "stars".into(),
+                            "numbers".into()],
+                        selected: 0
                     }
                 },
                 Entry {
@@ -228,6 +239,7 @@ impl Config {
                     key: "continuous minutes".into(),
                     value: Value::Boolean { value: true }
                 },
+                
                 Entry {
                     key: "Keyboard shortcuts".into(),
                     value: Value::Category
@@ -552,14 +564,15 @@ impl Config {
     /// - For `choice`/`color`: returns `Some(selected)`.
     /// - For `text`/`integer`/`boolean`/`category` or missing key: returns `None`.
     #[allow(dead_code)]
-    pub fn get_option(&self, key: &str) -> Option<usize> {
+    pub fn get_option(&self, key: &str) -> usize {
         self.entries
             .iter()
             .find(|e| e.key == key)
-            .and_then(|entry| match &entry.value {
-                Value::Choice { selected, .. } | Value::Color { selected, .. } => Some(*selected),
-                _ => None,
+            .map(|entry| match &entry.value {
+                Value::Choice { selected, .. } | Value::Color { selected, .. } => *selected,
+                _ => 0,
             })
+            .unwrap_or(0)
     }
 
     /// Get the integer value associated with a key, if it is an integer.
@@ -567,14 +580,15 @@ impl Config {
     /// - For `integer`: returns `Some(value)`.
     /// - For other kinds or missing key: returns `None`.
     #[allow(dead_code)]
-    pub fn get_int(&self, key: &str) -> Option<i64> {
+    pub fn get_int(&self, key: &str) -> i64 {
         self.entries
             .iter()
             .find(|e| e.key == key)
-            .and_then(|entry| match &entry.value {
-                Value::Integer { value } => Some(*value),
-                _ => None,
+            .map(|entry| match &entry.value {
+                Value::Integer { value } => *value,
+                _ => 0,
             })
+            .unwrap_or(0)
     }
 
     /// Get the boolean value associated with a key, if it is a boolean.
@@ -582,14 +596,15 @@ impl Config {
     /// - For `boolean`: returns `Some(value)`.
     /// - For other kinds or missing key: returns `None`.
     #[allow(dead_code)]
-    pub fn get_bool(&self, key: &str) -> Option<bool> {
+    pub fn get_bool(&self, key: &str) -> bool {
         self.entries
             .iter()
             .find(|e| e.key == key)
-            .and_then(|entry| match &entry.value {
-                Value::Boolean { value } => Some(*value),
-                _ => None,
+            .map(|entry| match &entry.value {
+                Value::Boolean { value } => *value,
+                _ => false,
             })
+            .unwrap_or(false)
     }
 
     /// Set the selected option index for a choice or color.
@@ -636,13 +651,13 @@ impl Config {
     /// - On success: updates the JSON file and returns `Some(new_value)`.
     /// - If key not found, kind mismatch, or save fails: returns `None`.
     #[allow(dead_code)]
-    pub fn set_int(&mut self, key: &str, value: i64) -> Option<i64> {
+    pub fn set_int(&mut self, key: &str, value: i64) ->  () {
         if let Some(entry) = self.entries.iter_mut().find(|e| e.key == key) {
             match &mut entry.value {
                 Value::Integer { value: ref mut v } => {
                     *v = value;
                 }
-                _ => return None,
+                _ => return,
             }
 
             if self.save().is_ok() {
@@ -652,7 +667,8 @@ impl Config {
             }
         } else {
             None
-        }
+        };
+        ()
     }
 
     /// Set the boolean value for a boolean field.
