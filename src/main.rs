@@ -328,7 +328,6 @@ fn main() {
         // ----- refresh & input -----
         refresh();
 
-        // quit on 'q' or 'Q'
         let ch = getch();
         if ch == 27_i32 {
             cfg.terminal_edit_json();
