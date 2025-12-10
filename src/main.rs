@@ -152,12 +152,9 @@ fn restore_ncurses_context(cfg: &Config) {
 
 fn main() {
     let home = env::var("HOME").expect("Could not find HOME environment variable");
-
-    // 2. Build the path safely
     let mut path = PathBuf::from(home);
     path.push(".tac.json");
     let mut cfg = Config::load(path.to_str().unwrap());
-
 
     // Init ncurses
     setlocale(LcCategory::all, "");
@@ -188,7 +185,7 @@ fn main() {
         erase();
 
         // ----- draw the ellipse (the “clock”) -----
-        if cfg.get_option("clock border") /* user_config.show_circle */ == 1 {
+        if cfg.get_option("clock border") == 1 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -247,14 +244,14 @@ fn main() {
         let now = Local::now();
         let hour = (cfg.get_int("local time offset") + (now.hour() as i64)) % 12;
         let minute = now.minute();
-        let second = match cfg.get_option("display seconds") /*user_config.show_seconds*/ {
+        let second = match cfg.get_option("display seconds") {
             2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
             _ => now.second(),
         } as f64;
 
         // Angles: 0 rad = 12 o'clock, increase clockwise.
         let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0) / 12.0;
-        let minute_angle = if cfg.get_bool("continuous minutes") /* user_config.continuous_minutes */ {
+        let minute_angle = if cfg.get_bool("continuous minutes") {
             2.0 * PI * ((minute as f64) + (second as f64) / 60.0) / 60.0
         } else {
             2.0 * PI * (minute as f64) / 60.0
@@ -271,7 +268,7 @@ fn main() {
                 (a as f64) * 0.9,
                 (b as f64) * 0.9,
             );
-            if cfg.get_int("numbers") /* user_config.show_numbers */ == 2 {
+            if cfg.get_int("numbers") == 2 {
                 if i > 9 {
                     draw_line(dx - 1, dy, dx, dy, "1");
                 }
@@ -283,13 +280,13 @@ fn main() {
                     dy,
                     &s,
                 );
-            } else if cfg.get_int("numbers") /* user_config.show_numbers*/ == 1 {
+            } else if cfg.get_int("numbers") == 1 {
                 draw_line(dx, dy, dx, dy, "*");
             }
         }
 
         // ----- second hand -----
-        if cfg.get_option("display seconds") /* user_config.show_seconds*/ > 0 {
+        if cfg.get_option("display seconds") > 0 {
             let second_angle = match cfg.get_option("display seconds") {
                 2 | 4 => 2.0 * PI * second / 60000.0,
                 _ => 2.0 * PI * second / 60.0,
