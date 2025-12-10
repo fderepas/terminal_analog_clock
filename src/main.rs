@@ -245,7 +245,7 @@ fn main() {
 
         // ----- current local time -----
         let now = Local::now();
-        let hour = now.hour() % 12;
+        let hour = (cfg.get_int("local time offset") + (now.hour() as i64)) % 12;
         let minute = now.minute();
         let second = match cfg.get_int("display seconds") /*user_config.show_seconds*/ {
             2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
