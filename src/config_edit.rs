@@ -44,14 +44,10 @@ enum Value {
     },
 
     /// Integer value
-    Integer {
-        value: i64,
-    },
+    Integer { value: i64 },
 
     /// Boolean value (toggled with Space, Enter, Left, or Right)
-    Boolean {
-        value: bool,
-    },
+    Boolean { value: bool },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -73,126 +69,132 @@ impl Config {
             entries: vec![
                 Entry {
                     key: "Colors".into(),
-                    value: Value::Category
+                    value: Value::Category,
                 },
                 Entry {
                     key: "background color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 0  // BLACK
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 0, // BLACK
+                    },
                 },
                 Entry {
                     key: "circle color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 2  // GREEN
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 2, // GREEN
+                    },
                 },
                 Entry {
                     key: "seconds color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 6  // CYAN
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 6, // CYAN
+                    },
                 },
                 Entry {
                     key: "digits color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 7  // WHITE
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 7, // WHITE
+                    },
                 },
                 Entry {
                     key: "minutes color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 3  // YELLOW
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 3, // YELLOW
+                    },
                 },
                 Entry {
                     key: "hours color".into(),
                     value: Value::Color {
-                        options: vec![  
-                            "BLACK".into(),    
-                            "RED".into(),      
-                            "GREEN".into(),    
-                            "YELLOW".into(),   
-                            "BLUE".into(),     
-                            "MAGENTA".into(),  
-                            "CYAN".into(),     
-                            "WHITE".into()  ],
-                        selected: 1  // RED
-                    }
+                        options: vec![
+                            "BLACK".into(),
+                            "RED".into(),
+                            "GREEN".into(),
+                            "YELLOW".into(),
+                            "BLUE".into(),
+                            "MAGENTA".into(),
+                            "CYAN".into(),
+                            "WHITE".into(),
+                        ],
+                        selected: 1, // RED
+                    },
                 },
                 Entry {
                     key: "Hand labels".into(),
-                    value: Value::Category
+                    value: Value::Category,
                 },
                 Entry {
                     key: "hour hand label".into(),
                     value: Value::Text {
                         value: "HOURS".into(),
-                        maximum_size: Some(32)
-                    }
+                        maximum_size: Some(32),
+                    },
                 },
                 Entry {
                     key: "minute hand label".into(),
                     value: Value::Text {
                         value: "minutes".into(),
-                        maximum_size: Some(32)
-                    }
+                        maximum_size: Some(32),
+                    },
                 },
                 Entry {
                     key: "second hand label".into(),
                     value: Value::Text {
                         value: ".".into(),
-                        maximum_size: Some(32)
-                    }
+                        maximum_size: Some(32),
+                    },
                 },
                 Entry {
                     key: "Display modes".into(),
-                    value: Value::Category
+                    value: Value::Category,
                 },
                 Entry {
                     key: "clock border".into(),
@@ -201,9 +203,10 @@ impl Config {
                             "full".into(),
                             "dot and hours".into(),
                             "hours".into(),
-                            "no border".into()],
-                        selected: 1
-                    }
+                            "no border".into(),
+                        ],
+                        selected: 1,
+                    },
                 },
                 Entry {
                     key: "display seconds".into(),
@@ -213,66 +216,63 @@ impl Config {
                             "full each second".into(),
                             "full continuous".into(),
                             "end of hand each second".into(),
-                            "end of hand full continuous".into()],
-                        selected: 1
-                    }
+                            "end of hand full continuous".into(),
+                        ],
+                        selected: 1,
+                    },
                 },
                 Entry {
                     key: "numbers".into(),
                     value: Value::Choice {
-                        options: vec![
-                            "no numbers".into(),
-                            "stars".into(),
-                            "numbers".into()],
-                        selected: 0
-                    }
+                        options: vec!["no numbers".into(), "stars".into(), "numbers".into()],
+                        selected: 0,
+                    },
                 },
                 Entry {
                     key: "clock width".into(),
-                    value: Value::Integer { value: 5 }
+                    value: Value::Integer { value: 5 },
                 },
                 Entry {
                     key: "local time offset".into(),
-                    value: Value::Integer { value: 0 }
+                    value: Value::Integer { value: 0 },
                 },
                 Entry {
                     key: "continuous minutes".into(),
-                    value: Value::Boolean { value: true }
+                    value: Value::Boolean { value: true },
                 },
-                
                 Entry {
                     key: "Keyboard shortcuts".into(),
-                    value: Value::Category
+                    value: Value::Category,
                 },
                 Entry {
                     key: "change clock border".into(),
                     value: Value::Text {
                         value: "c".into(),
-                        maximum_size: Some(1)
-                    }
+                        maximum_size: Some(1),
+                    },
                 },
                 Entry {
                     key: "change number display".into(),
                     value: Value::Text {
                         value: "n".into(),
                         maximum_size: Some(1),
-                    }
+                    },
                 },
                 Entry {
                     key: "change seconds display".into(),
                     value: Value::Text {
                         value: "s".into(),
                         maximum_size: Some(1),
-                    }
+                    },
                 },
                 Entry {
                     key: "quit".into(),
                     value: Value::Text {
                         value: "q".into(),
                         maximum_size: Some(1),
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         }
     }
     pub fn load(filename: &str) -> Self {
@@ -294,7 +294,7 @@ impl Config {
             Config::default(filename)
         }
     }
-    
+
     pub fn save(&mut self) -> Result<(), String> {
         let json = serde_json::to_string_pretty(self).map_err(|e| e.to_string())?;
         fs::write(&self.filename, json).map_err(|e| e.to_string())
@@ -303,16 +303,16 @@ impl Config {
     /// Draw the whole screen: header, list (scrolling, selected centered), and bottom status line.
     pub fn draw_screen(&self, selected: usize, path: &str) {
         clear();
-        
+
         let mut max_y = 0;
         let mut max_x = 0;
         getmaxyx(stdscr(), &mut max_y, &mut max_x);
-        
+
         // Header at the top
         let header = format!("Key/Value editor  |  file: {}", path);
         mvprintw(0, 0, &header);
         clrtoeol();
-        
+
         // Instruction line (with Unicode arrows)
         if SAVE_WHEN_CHANGE.load(Ordering::SeqCst) {
             mvprintw(
@@ -328,15 +328,15 @@ impl Config {
             );
         }
         clrtoeol();
-        
+
         // Area reserved for the list
         let list_top = 3;
         let list_bottom = max_y - 3; // keep a few lines at the bottom for status/edit
-        
+
         // Pre-render entry lines to compute max width for horizontal centering
         let mut rendered_lines = Vec::with_capacity(self.entries.len());
         let mut max_width: usize = 0;
-        
+
         for entry in &self.entries {
             let line = match &entry.value {
                 Value::Text { value, .. } => {
@@ -344,10 +344,7 @@ impl Config {
                     format!("{:<20} = {}", entry.key, value_str)
                 }
                 Value::Choice { options, selected } => {
-                    let current = options
-                        .get(*selected)
-                        .map(|s| s.as_str())
-                        .unwrap_or("<?>");
+                    let current = options.get(*selected).map(|s| s.as_str()).unwrap_or("<?>");
                     let value_str = format!("[{}]", current);
                     format!("{:<20} = {}", entry.key, value_str)
                 }
@@ -356,10 +353,7 @@ impl Config {
                     entry.key.clone()
                 }
                 Value::Color { options, selected } => {
-                    let current = options
-                        .get(*selected)
-                        .map(|s| s.as_str())
-                        .unwrap_or("<?>");
+                    let current = options.get(*selected).map(|s| s.as_str()).unwrap_or("<?>");
                     let value_str = format!("[{}]", current);
                     format!("{:<20} = {}", entry.key, value_str)
                 }
@@ -371,21 +365,21 @@ impl Config {
                     format!("{:<20} = {}", entry.key, value_str)
                 }
             };
-            
+
             let width = line.chars().count();
             if width > max_width {
                 max_width = width;
             }
             rendered_lines.push(line);
         }
-        
+
         // Horizontally center
         let start_col: i32 = if (max_x as usize) > max_width {
             ((max_x as usize - max_width) / 2) as i32
         } else {
             0
         };
-        
+
         // Vertically: the selected entry is always on the "center row"
         let mut center_row = max_y / 2;
         if center_row < list_top {
@@ -394,40 +388,40 @@ impl Config {
         if center_row > list_bottom {
             center_row = list_bottom;
         }
-        
+
         let has_color = has_colors();
-        
+
         // Draw each entry with a row based on its offset from the selected index
         for (i, line) in rendered_lines.iter().enumerate() {
             let offset = i as i32 - selected as i32;
             let row = center_row + offset;
-            
+
             // Only draw entries that fit in the visible list window
             if row < list_top || row > list_bottom {
                 continue;
             }
-            
+
             let entry = &self.entries[i];
-            
+
             match &entry.value {
                 Value::Category => {
                     // Category: full-width bar (max_width), centered key, green + reverse
                     let bar_width = max_width.max(entry.key.chars().count());
                     let key = &entry.key;
                     let key_len = key.chars().count();
-                    
+
                     let mut cat_line = String::new();
                     let padding_left = if bar_width > key_len {
                         (bar_width - key_len) / 2
                     } else {
                         0
                     };
-                    
+
                     // Left padding
                     for _ in 0..padding_left {
                         cat_line.push(' ');
                     }
-                    
+
                     // Add key
                     let mut current_len = padding_left;
                     for c in key.chars() {
@@ -437,13 +431,13 @@ impl Config {
                         cat_line.push(c);
                         current_len += 1;
                     }
-                    
+
                     // Right padding
                     while current_len < bar_width {
                         cat_line.push(' ');
                         current_len += 1;
                     }
-                    
+
                     if has_color {
                         attron(COLOR_PAIR(CATEGORY_PAIR));
                     }
@@ -453,23 +447,23 @@ impl Config {
                     if has_color {
                         attroff(COLOR_PAIR(CATEGORY_PAIR));
                     }
-                    
+
                     mv(row, start_col + bar_width as i32);
                     clrtoeol();
                 }
-                Value::Color { options, selected: color_idx } => {
+                Value::Color {
+                    options,
+                    selected: color_idx,
+                } => {
                     // Color entry: key field + " = [" + colored name + "]"
-                    let current = options
-                        .get(*color_idx)
-                        .map(|s| s.as_str())
-                        .unwrap_or("<?>");
-                    
+                    let current = options.get(*color_idx).map(|s| s.as_str()).unwrap_or("<?>");
+
                     let prefix = format!("{:<20} = [", entry.key);
                     let suffix = "]";
-                    
+
                     // For clearing, use the precomputed line width
                     let line_width = line.chars().count() as i32;
-                    
+
                     // Prefix (with selection highlight if selected)
                     if i == selected {
                         attron(A_REVERSE());
@@ -478,9 +472,9 @@ impl Config {
                     } else {
                         mvprintw(row, start_col, &prefix);
                     }
-                    
+
                     let mut col = start_col + prefix.chars().count() as i32;
-                    
+
                     // Colored name, no reverse, just color pair
                     if has_color {
                         if let Some(pair) = color_name_to_pair(current) {
@@ -493,18 +487,18 @@ impl Config {
                     } else {
                         mvprintw(row, col, current);
                     }
-                    
+
                     col += current.chars().count() as i32;
-                    
+
                     // Suffix (with selection highlight if selected)
                     if i == selected {
                         attron(A_REVERSE());
-                        mvprintw(row, col, &suffix);
+                        mvprintw(row, col, suffix);
                         attroff(A_REVERSE());
                     } else {
-                        mvprintw(row, col, &suffix);
+                        mvprintw(row, col, suffix);
                     }
-                    
+
                     // Clear to end of line
                     mv(row, start_col + line_width);
                     clrtoeol();
@@ -518,26 +512,25 @@ impl Config {
                     } else {
                         mvprintw(row, start_col, line);
                     }
-                    
+
                     mv(row, start_col + line.chars().count() as i32);
                     clrtoeol();
                 }
             }
         }
-        
+
         // Status/help line at the very bottom; content is updated by show_status()
-        
+
         if SAVE_WHEN_CHANGE.load(Ordering::SeqCst) {
             mvprintw(max_y - 1, 0, "Press escape to quit");
         } else {
             mvprintw(max_y - 1, 0, "Press escape to quit, s to save…");
         }
         clrtoeol();
-        
+
         refresh();
     }
 
-    
     /// Get the string value associated with a key, if any.
     ///
     /// - For `text`: returns the text (`value`).
@@ -551,8 +544,9 @@ impl Config {
             .find(|e| e.key == key)
             .and_then(|entry| match &entry.value {
                 Value::Text { value, .. } => Some(value.clone()),
-                Value::Choice { options, selected }
-                | Value::Color { options, selected } => options.get(*selected).cloned(),
+                Value::Choice { options, selected } | Value::Color { options, selected } => {
+                    options.get(*selected).cloned()
+                }
                 Value::Integer { value } => Some(value.to_string()),
                 Value::Boolean { value } => Some(value.to_string()),
                 Value::Category => None,
@@ -651,7 +645,7 @@ impl Config {
     /// - On success: updates the JSON file and returns `Some(new_value)`.
     /// - If key not found, kind mismatch, or save fails: returns `None`.
     #[allow(dead_code)]
-    pub fn set_int(&mut self, key: &str, value: i64) ->  () {
+    pub fn set_int(&mut self, key: &str, value: i64) {
         if let Some(entry) = self.entries.iter_mut().find(|e| e.key == key) {
             match &mut entry.value {
                 Value::Integer { value: ref mut v } => {
@@ -668,7 +662,6 @@ impl Config {
         } else {
             None
         };
-        ()
     }
 
     /// Set the boolean value for a boolean field.
@@ -729,7 +722,6 @@ impl Config {
 
     /// Public entry point: edit a JSON config file in a terminal ncurses UI.
     pub fn terminal_edit_json(&mut self) {
-
         // Enable UTF-8 / wide-character support based on current locale.
         setlocale(LcCategory::all, "");
 
@@ -773,7 +765,7 @@ impl Config {
             if display_screen {
                 self.draw_screen(selected, &self.filename);
             }
-            display_screen=true;
+            display_screen = true;
             let ch = getch();
 
             match ch {
@@ -835,7 +827,6 @@ impl Config {
                     if SAVE_WHEN_CHANGE.load(Ordering::SeqCst) {
                         let _ = self.save();
                     }
-
                 }
                 // 'e' -> edit_entry (text/int editor or status messages)
                 101 => {
@@ -878,18 +869,16 @@ impl Config {
                     }
                 }
                 // 's' -> save
-                115 => {
-                    match self.save() {
-                        Ok(()) => show_status("Saved configuration."),
-                        Err(err) => show_status(&format!("Save failed: {err}")),
-                    }
-                }
+                115 => match self.save() {
+                    Ok(()) => show_status("Saved configuration."),
+                    Err(err) => show_status(&format!("Save failed: {err}")),
+                },
                 // 'q' -> quit
                 27 => {
                     break;
                 }
                 _ => {
-                    display_screen=false;
+                    display_screen = false;
                     napms(10);
                 }
             }
@@ -898,7 +887,6 @@ impl Config {
             endwin();
         }
     }
-
 }
 
 fn color_name_to_pair(name: &str) -> Option<i16> {
@@ -915,7 +903,6 @@ fn color_name_to_pair(name: &str) -> Option<i16> {
         _ => None,
     }
 }
-
 
 fn show_status(msg: &str) {
     let mut max_y = 0;
@@ -995,7 +982,7 @@ fn edit_text_value(key: &str, value: &mut String, maximum_size: Option<usize>) {
             }
             _ => {
                 // Printable ASCII (for simplicity)
-                if ch >= 32 && ch <= 126 {
+                if (32..=126).contains(&ch) {
                     if let Some(c) = std::char::from_u32(ch as u32) {
                         if input.len() < limit {
                             input.push(c);
@@ -1084,9 +1071,7 @@ fn edit_integer_value(key: &str, value: &mut i64) {
                     if input.len() >= limit {
                         continue;
                     }
-                    if c.is_ascii_digit() {
-                        input.push(c);
-                    } else if c == '-' && input.is_empty() {
+                    if c.is_ascii_digit() || ( c == '-' && input.is_empty()) {
                         input.push(c);
                     }
                 }
@@ -1134,4 +1119,3 @@ fn edit_entry(entry: &mut Entry) {
         }
     }
 }
-

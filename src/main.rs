@@ -1,14 +1,13 @@
-
 use chrono::{Local, Timelike};
 use ncurses::*;
 use std::cmp::min;
-use std::f64::consts::PI;
 use std::env;
+use std::f64::consts::PI;
 use std::path::PathBuf;
 
 mod config_edit;
 
-use config_edit::{Config};
+use config_edit::Config;
 
 /// Plot the four symmetric points of an ellipse.
 fn plot_ellipse_points(cx: i32, cy: i32, x: i32, y: i32, ch: chtype) {
@@ -136,12 +135,12 @@ fn restore_ncurses_context(cfg: &Config) {
 
     if has_colors() {
         start_color();
-        let circle_color =cfg.get_option("circle color") as i16;
-        let hours_color =cfg.get_option("hours color") as i16;
-        let minutes_color =cfg.get_option("minutes color") as i16;
-        let seconds_color =cfg.get_option("seconds color") as i16;
-        let digits_color =cfg.get_option("digits color") as i16;
-        
+        let circle_color = cfg.get_option("circle color") as i16;
+        let hours_color = cfg.get_option("hours color") as i16;
+        let minutes_color = cfg.get_option("minutes color") as i16;
+        let seconds_color = cfg.get_option("seconds color") as i16;
+        let digits_color = cfg.get_option("digits color") as i16;
+
         init_pair(1, circle_color, -1); // ellipse
         init_pair(2, hours_color, -1); // hour hand
         init_pair(3, minutes_color, -1); // minute hand
@@ -179,7 +178,7 @@ fn main() {
         let b = max_b; // vertical radius (the “height” of the clock)
                        //        let a = b;          // horizontal radius (twice the height)
                        // horizontal radius = (twice the height) + custom offset
-        let a = 2 * b + (cfg.get_int("clock width") as i32); 
+        let a = 2 * b + (cfg.get_int("clock width") as i32);
 
         // ----- clear screen -----
         erase();
@@ -272,14 +271,8 @@ fn main() {
                 if i > 9 {
                     draw_line(dx - 1, dy, dx, dy, "1");
                 }
-                let s =  (i % 10).to_string();
-                draw_line(
-                    dx,
-                    dy,
-                    dx,
-                    dy,
-                    &s,
-                );
+                let s = (i % 10).to_string();
+                draw_line(dx, dy, dx, dy, &s);
             } else if cfg.get_int("numbers") == 1 {
                 draw_line(dx, dy, dx, dy, "*");
             }
@@ -317,13 +310,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(3));
         }
-        draw_line(
-            cx + (cx - mx) / 10,
-            cy + (cy - my) / 10,
-            mx,
-            my,
-            "minutes",
-        );
+        draw_line(cx + (cx - mx) / 10, cy + (cy - my) / 10, mx, my, "minutes");
         if has_colors() {
             attroff(COLOR_PAIR(3));
         }
@@ -333,13 +320,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(2));
         }
-        draw_line(
-            cx + (cx - hx) / 10,
-            cy + (cy - hy) / 10,
-            hx,
-            hy,
-            "HOURS",
-        );
+        draw_line(cx + (cx - hx) / 10, cy + (cy - hy) / 10, hx, hy, "HOURS");
         if has_colors() {
             attroff(COLOR_PAIR(2));
         }
@@ -349,7 +330,7 @@ fn main() {
 
         // quit on 'q' or 'Q'
         let ch = getch();
-        if ch== 27 as i32 {
+        if ch == 27_i32 {
             cfg.terminal_edit_json();
             restore_ncurses_context(&cfg);
         }
@@ -357,30 +338,28 @@ fn main() {
             break;
         }
         if ch == 's' as i32 || ch == 'S' as i32 {
-            cfg.set_option("display seconds",
-                           ((cfg.get_option("display seconds") as i64) +1) % 5);
+            cfg.set_option(
+                "display seconds",
+                ((cfg.get_option("display seconds") as i64) + 1) % 5,
+            );
         }
         if ch == 'c' as i32 || ch == 'C' as i32 {
-            cfg.set_option("clock border",
-                           ((cfg.get_option("clock border") as i64) +1) % 4);
+            cfg.set_option(
+                "clock border",
+                ((cfg.get_option("clock border") as i64) + 1) % 4,
+            );
         }
         if ch == 'n' as i32 || ch == 'N' as i32 {
-            cfg.set_option("numbers",
-                           ((cfg.get_option("numbers") as i64) +1) % 3);
+            cfg.set_option("numbers", ((cfg.get_option("numbers") as i64) + 1) % 3);
         }
         if ch == 'm' as i32 || ch == 'M' as i32 {
-            cfg.set_bool("continuous minutes",
-                         !cfg.get_bool("continuous minutes"));
+            cfg.set_bool("continuous minutes", !cfg.get_bool("continuous minutes"));
         }
-        if ch == '+' as i32 {
-            if cfg.get_int("clock width")  < (b as i64) {
-                cfg.set_int("clock width",cfg.get_int("clock width") -1);
-            }
+        if ch == '+' as i32 &&  cfg.get_int("clock width") < (b as i64) {
+            cfg.set_int("clock width", cfg.get_int("clock width") - 1);
         }
-        if ch == '-' as i32 {
-            if cfg.get_int("clock width")  > (-b as i64) {
-                cfg.set_int("clock width",cfg.get_int("clock width") -1);
-            }
+        if ch == '-' as i32 && cfg.get_int("clock width") > (-b as i64) {
+            cfg.set_int("clock width", cfg.get_int("clock width") - 1);
         }
 
         if cfg.get_option("display seconds") == 2 || cfg.get_option("display seconds") == 4 {
@@ -391,7 +370,6 @@ fn main() {
             //napms(333);
             // Sleep .2 second
             napms(66);
-            
         }
     }
 
