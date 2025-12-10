@@ -247,7 +247,7 @@ fn main() {
         let now = Local::now();
         let hour = (cfg.get_int("local time offset") + (now.hour() as i64)) % 12;
         let minute = now.minute();
-        let second = match cfg.get_int("display seconds") /*user_config.show_seconds*/ {
+        let second = match cfg.get_option("display seconds") /*user_config.show_seconds*/ {
             2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
             _ => now.second(),
         } as f64;
@@ -289,8 +289,8 @@ fn main() {
         }
 
         // ----- second hand -----
-        if cfg.get_int("display seconds") /* user_config.show_seconds*/ > 0 {
-            let second_angle = match cfg.get_int("display seconds") {
+        if cfg.get_option("display seconds") /* user_config.show_seconds*/ > 0 {
+            let second_angle = match cfg.get_option("display seconds") {
                 2 | 4 => 2.0 * PI * second / 60000.0,
                 _ => 2.0 * PI * second / 60.0,
             };
@@ -298,7 +298,7 @@ fn main() {
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            if cfg.get_int("display seconds") < 3 {
+            if cfg.get_option("display seconds") < 3 {
                 draw_line(cx, cy, sx, sy, ".");
             } else {
                 let (bx, by) = polar_to_cartesian_ellipse(
@@ -361,7 +361,7 @@ fn main() {
         }
         if ch == 's' as i32 || ch == 'S' as i32 {
             cfg.set_option("display seconds",
-                           (cfg.get_int("display seconds") +1) % 5);
+                           ((cfg.get_option("display seconds") as i64) +1) % 5);
         }
         if ch == 'c' as i32 || ch == 'C' as i32 {
             cfg.set_option("clock border",
@@ -386,7 +386,7 @@ fn main() {
             }
         }
 
-        if cfg.get_int("display seconds") == 2 || cfg.get_int("display seconds") == 4 {
+        if cfg.get_option("display seconds") == 2 || cfg.get_option("display seconds") == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
