@@ -4,6 +4,7 @@ default: install
 install:
 	if ! command -v cargo >/dev/null 2>&1; then curl https://sh.rustup.rs -sSf | sh -s -- -y ; fi
 	if [ ! -f /usr/include/ncurses.h ]; then sudo apt install libncurses-dev -y ; fi
+	if [ ! -d ~/.cargo ]; then rustup default stable; fi
 
 tty1: install
 	. "${HOME}/.cargo/env" && cargo build --release
