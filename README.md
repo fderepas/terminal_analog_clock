@@ -14,19 +14,19 @@ A simple, customizable analog clock that runs directly in your terminal.
 
 ## Installation
 
-1. **Prerequisites**: Ensure you have [Rust and Cargo](https://rustup.rs/) installed. Also make sure that ncurses header files are installed:
-```
-sudo apt install -y libncurses-dev
-```
+1. **Prerequisites**: Ensure you have [Rust and Cargo](https://rustup.rs/) installed. You must also install the `ncurses` development headers:
+   ```bash
+   sudo apt install -y libncurses-dev
+   ```
 
-2. **Build**: Clone the repository and run the following command from the project's root directory:
+2. **Build**: Clone this repository and run the following command from the project's root directory:
 
 ```
 cargo build --release
 ```
-or just type ```make``` if you have [make](https://www.gnu.org/software/make/) installed.
+Alternatively, run `make` if installed.
 
-This creates the ```target/release/tag``` executable you can put anywhere.
+This creates the `target/release/tac` executable.
 
 # Controls
 
@@ -39,5 +39,5 @@ The clock's appearance can be changed in real-time using the following keys:
 | `n` | **Toggle Hour Markers**: Cycles through three styles: - Off (no markers) - Numeric (12, 3, 6, 9) - Dots | 
 | `+` | Increases the clock's width (makes it wider). | 
 | `-` | Decreases the clock's width (makes it narrower). | 
-| `q` | Quits the application. | 
+| `q` | Quits the application. |
 

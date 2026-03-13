@@ -11,6 +11,9 @@ use config_edit::Config;
 
 /// Plot the four symmetric points of an ellipse.
 fn plot_ellipse_points(cx: i32, cy: i32, x: i32, y: i32, ch: chtype) {
+    let mut max_rows = 0;
+    let mut max_cols = 0;
+    getmaxyx(stdscr(), &mut max_rows, &mut max_cols);
     // Quadrant symmetry
     let points = [
         (cx + x, cy + y),
@@ -19,7 +22,7 @@ fn plot_ellipse_points(cx: i32, cy: i32, x: i32, y: i32, ch: chtype) {
         (cx - x, cy - y),
     ];
     for &(px, py) in &points {
-        if px >= 0 && py >= 0 {
+        if px >= 0 && py >= 0 && px < max_cols && py < max_rows {
             mvaddch(py, px, ch);
         }
     }
@@ -74,11 +77,12 @@ fn draw_line(x_ori0: i32, y_ori0: i32, x_ori1: i32, y_ori1: i32, pattern: &str) 
     if pattern.is_empty() {
         return;
     }
-    let mut start_at_0 = x_ori0 < x_ori1;
-    if x_ori0 == x_ori1 {
+    let start_at_0 = if x_ori0 == x_ori1 {
         // the writing is vertical, write from top to bottom
-        start_at_0 = y_ori0 < y_ori1
-    }
+        y_ori0 < y_ori1
+    } else {
+        x_ori0 < x_ori1
+    };
     let mut x0 = if start_at_0 { x_ori0 } else { x_ori1 };
     let mut y0 = if start_at_0 { y_ori0 } else { y_ori1 };
     let x1 = if start_at_0 { x_ori1 } else { x_ori0 };
@@ -179,12 +183,15 @@ fn main() {
                        //        let a = b;          // horizontal radius (twice the height)
                        // horizontal radius = (twice the height) + custom offset
         let a = 2 * b + (cfg.get_int("clock width") as i32);
+        let seconds_mode = cfg.get_option("display seconds");
+        let border_mode  = cfg.get_option("clock border");
+        let numbers_mode = cfg.get_int("numbers");
 
         // ----- clear screen -----
         erase();
 
         // ----- draw the ellipse (the “clock”) -----
-        if cfg.get_option("clock border") == 1 {
+        if border_mode == 1 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -192,7 +199,7 @@ fn main() {
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
-        } else if cfg.get_option("clock border") == 2 {
+        } else if border_mode == 2 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -220,7 +227,7 @@ fn main() {
             if has_colors() {
                 attroff(COLOR_PAIR(1));
             }
-        } else if cfg.get_option("clock border") == 3 {
+        } else if border_mode == 3 {
             if has_colors() {
                 attron(COLOR_PAIR(1));
             }
@@ -241,25 +248,30 @@ fn main() {
 
         // ----- current local time -----
         let now = Local::now();
-        let hour = (cfg.get_int("local time offset") + (now.hour() as i64)) % 12;
+        let hour = (cfg.get_int("local time offset") + (now.hour() as i64)).rem_euclid(12);
         let minute = now.minute();
-        let second = match cfg.get_option("display seconds") {
+        let second = match seconds_mode {
             2 | 4 => now.second() * 1000 + (now.nanosecond() / 1_000_000),
             _ => now.second(),
         } as f64;
 
         // Angles: 0 rad = 12 o'clock, increase clockwise.
-        let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0) / 12.0;
+        let actual_second_frac = now.second() as f64 + now.nanosecond() as f64 / 1_000_000_000.0;
+        let hour_angle = 2.0 * PI * ((hour as f64) + (minute as f64) / 60.0 + actual_second_frac / 3600.0) / 12.0;
         let minute_angle = if cfg.get_bool("continuous minutes") {
             2.0 * PI * ((minute as f64) + (second as f64) / 60.0) / 60.0
         } else {
             2.0 * PI * (minute as f64) / 60.0
         };
 
+        let hour_label = cfg.get_string("hour hand label").unwrap_or_else(|| "HOURS".to_string());
+        let minute_label = cfg.get_string("minute hand label").unwrap_or_else(|| "minutes".to_string());
+        let second_label = cfg.get_string("second hand label").unwrap_or_else(|| ".".to_string());
+
+        if has_colors() {
+            attron(COLOR_PAIR(5));
+        }
         for i in 1..13 {
-            if has_colors() {
-                attron(COLOR_PAIR(5));
-            }
             let (dx, dy) = polar_to_cartesian_ellipse(
                 cx,
                 cy,
@@ -267,20 +279,23 @@ fn main() {
                 (a as f64) * 0.9,
                 (b as f64) * 0.9,
             );
-            if cfg.get_int("numbers") == 2 {
+            if numbers_mode == 2 {
                 if i > 9 {
                     draw_line(dx - 1, dy, dx, dy, "1");
                 }
                 let s = (i % 10).to_string();
                 draw_line(dx, dy, dx, dy, &s);
-            } else if cfg.get_int("numbers") == 1 {
+            } else if numbers_mode == 1 {
                 draw_line(dx, dy, dx, dy, "*");
             }
         }
+        if has_colors() {
+            attroff(COLOR_PAIR(5));
+        }
 
         // ----- second hand -----
-        if cfg.get_option("display seconds") > 0 {
-            let second_angle = match cfg.get_option("display seconds") {
+        if seconds_mode > 0 {
+            let second_angle = match seconds_mode {
                 2 | 4 => 2.0 * PI * second / 60000.0,
                 _ => 2.0 * PI * second / 60.0,
             };
@@ -288,8 +303,8 @@ fn main() {
             if has_colors() {
                 attron(COLOR_PAIR(4));
             }
-            if cfg.get_option("display seconds") < 3 {
-                draw_line(cx, cy, sx, sy, ".");
+            if seconds_mode < 3 {
+                draw_line(cx, cy, sx, sy, &second_label);
             } else {
                 let (bx, by) = polar_to_cartesian_ellipse(
                     cx,
@@ -298,7 +313,7 @@ fn main() {
                     (a as f64) * 0.8,
                     (b as f64) * 0.8,
                 );
-                draw_line(bx, by, sx, sy, ".");
+                draw_line(bx, by, sx, sy, &second_label);
             }
             if has_colors() {
                 attroff(COLOR_PAIR(4));
@@ -310,7 +325,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(3));
         }
-        draw_line(cx + (cx - mx) / 10, cy + (cy - my) / 10, mx, my, "minutes");
+        draw_line(cx + (cx - mx) / 10, cy + (cy - my) / 10, mx, my, &minute_label);
         if has_colors() {
             attroff(COLOR_PAIR(3));
         }
@@ -320,7 +335,7 @@ fn main() {
         if has_colors() {
             attron(COLOR_PAIR(2));
         }
-        draw_line(cx + (cx - hx) / 10, cy + (cy - hy) / 10, hx, hy, "HOURS");
+        draw_line(cx + (cx - hx) / 10, cy + (cy - hy) / 10, hx, hy, &hour_label);
         if has_colors() {
             attroff(COLOR_PAIR(2));
         }
@@ -355,13 +370,13 @@ fn main() {
             cfg.set_bool("continuous minutes", !cfg.get_bool("continuous minutes"));
         }
         if ch == '+' as i32 &&  cfg.get_int("clock width") < (b as i64) {
-            cfg.set_int("clock width", cfg.get_int("clock width") - 1);
+            cfg.set_int("clock width", cfg.get_int("clock width") + 1);
         }
         if ch == '-' as i32 && cfg.get_int("clock width") > (-b as i64) {
             cfg.set_int("clock width", cfg.get_int("clock width") - 1);
         }
 
-        if cfg.get_option("display seconds") == 2 || cfg.get_option("display seconds") == 4 {
+        if seconds_mode == 2 || seconds_mode == 4 {
             // Sleep a little (≈30ms → ~33fps)
             napms(30);
         } else {
